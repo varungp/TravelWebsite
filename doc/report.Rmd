@@ -1,0 +1,22 @@
+---
+title: "Exercise Set 4"
+output: html_document
+---
+
+Here we will write a simple project for the [Boat Case](http://inseaddataanalytics.github.io/INSEADAnalytics/Boats-A-prerelease.pdf) data. There are `r ncol(ProjectData)` columns in the data 
+
+```{r echo=FALSE, eval=TRUE, tidy=TRUE}
+# Let's get the data
+#ProjectData = read.csv("../data/Boats.csv", sep=";", dec = ",", header = TRUE)
+```
+
+The average response to question 1 is `r mean(ProjectData[,1])`
+
+my new function on the second number of the second column AND the first number os second column is `r newfunction(ProjectData[2,2], ProjectData[1,2])`
+
+```{r, echo=FALSE}
+```
+
+```{r, echo=FALSE}
+```
+
