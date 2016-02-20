@@ -1,21 +1,174 @@
 ---
-title: "Exercise Set 4"
 output: html_document
 ---
 
-Here we will write a simple project for the [Boat Case](http://inseaddataanalytics.github.io/INSEADAnalytics/Boats-A-prerelease.pdf) data. There are `r ncol(ProjectData)` columns in the data 
+***
+***
+
+ Travel Website - Iberostar 
+
+==========================================
+
+**Bhuvnesh Singh and Varun Gupta** - *INSEAD MBA 16J*
+
+bhuvnesh.singh@insead.edu
+varun.gupta@insead.edu
+ 
+## Business motivation
+ 
+Our client Iberostar Hotels & Resorts is a hotel chain based in Spain, specializing in 4 and 5 star hotels. It is owned by Grupo Iberostar, which also owns Iberostate Golf, Villas & Condos, Iberoservice its incoming tourism division and Iberostar The Club.
+
+The client has its own website and receives traffic from several countries. In this case, we have looked into the traffic data of the client and have tried to look for bottled down factors that drive the booking and hence the revenue for the client. Further, we have looked at the possible clusters in the traffic data.
+
+## Data Description
+First, let's take a look at the first 1000 rows of data
+
+
+```{r, echo=FALSE, message=FALSE, prompt=FALSE, results='asis'}
+
+options(warn=-1)
+library(googleVis)
+library(dplyr)
+library(lattice)
+library(ggplot2)
+
+local_directory <- getwd()
+if (!exists("gadata")) 
+  gadata <- within(read.csv(paste(local_directory,"../data/Iberostar.csv", sep="/")),rm("X"))
+t1 <- gvisTable(gadata[1:1000,],options = list(showRowNumber = FALSE, width = 800, height = min(400,27*(nrow(gadata) + 1)), allowHTML = TRUE, page = 'disable'))
+print(t1,'chart')
+```
+
+<br>
+<br>
+Let's review the contents of the data 
+<br>
+
+* **year**: the year the data was collected
+* **month**: the month of the year the data was collected
+* **pagePath**: the URL of the page which the data belongs to, excluding the domain. 
+* **source**: the website where the visitor was before landing into our website. If there was no website or it is not recognized, the value is (direct)
+* **medium**: the mechanism by which the visitor landed in our website. Some values are: organic (search engine), cpc (paid advertising in search engines or other websites), referral (from other website), feed (from automated reading systems). If it is not recognized, the value is (none)
+* **userType**: whether the user had been before in the website or not (New Visitor/Returning Visitor)
+* **deviceCategory**: the device of the user
+* **entrances**: how many times a user entered the website through that page
+* **pageviews**: how many times a user opened that page
+* **exits**: how many times that page was the last one opened by a user in the same session
+* **timeOnPage**: how many seconds this page has been viewed
+* **uniquePageviews**: how many times this page has been viewed in an unique session
+
+```{r echo=FALSE, message=FALSE, prompt=FALSE, results='asis'}
+source("../R/library.R")
+```
 
 ```{r echo=FALSE, eval=TRUE, tidy=TRUE}
-
+ProjectDataFactor=gadata[,c(4:19)]
 ```
 
-The average response to question 1 is `r mean(ProjectData[,1])`
+This is the correlation matrix of the various factors:
+<br>
 
-my new function on the second number of the second column AND the first number os second column is `r newfunction(ProjectData[2,2], ProjectData[1,2])`
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE, results='asis'}
+show_data = data.frame(cbind(colnames(ProjectDataFactor), round(cor(ProjectDataFactor),2)))
+m1<-gvisTable(show_data,options=list(width=1920, height=min(400,27*(nrow(show_data)+1)),allowHTML=TRUE))
+print(m1,'chart')
+```
+<br>
 
-```{r, echo=FALSE}
+<br>
+Here we use `PCA` to identify primary components:
+<br>
+
+```{r echo=FALSE, eval=TRUE, tidy=TRUE}
+Variance_Explained_Table_results<-PCA(ProjectDataFactor, graph=FALSE)
+Variance_Explained_Table<-Variance_Explained_Table_results$eig
+Variance_Explained_Table_copy<-Variance_Explained_Table
+row=1:nrow(Variance_Explained_Table)
+name<-paste("Component No:",row,sep="")
+Variance_Explained_Table<-cbind(name,Variance_Explained_Table)
+Variance_Explained_Table<-as.data.frame(Variance_Explained_Table)
+colnames(Variance_Explained_Table)<-c("Components", "Eigenvalue", "Percentage_of_explained_variance", "Cumulative_percentage_of_explained_variance")
+
+eigenvalues  <- Variance_Explained_Table[,2]
 ```
 
-```{r, echo=FALSE}
+<br>
+<br>
+
+```{r echo=FALSE, comment=NA, warning=FALSE, error=FALSE,message=FALSE,results='asis'}
+show_data = Variance_Explained_Table
+m<-gvisTable(Variance_Explained_Table,options=list(width=1200, height=min(400,27*(nrow(show_data)+1)),allowHTML=TRUE,page='disable'),formats=list(Eigenvalue="#.##",Percentage_of_explained_variance="#.##",Cumulative_percentage_of_explained_variance="#.##"))
+print(m,'chart')
 ```
+<br> 
+
+```{r Fig1, echo=FALSE, comment=NA, results='asis', message=FALSE, fig.align='center', fig=TRUE}
+df           <- cbind(as.data.frame(eigenvalues), c(1:length(eigenvalues)), rep(1, length(eigenvalues)))
+colnames(df) <- c("eigenvalues", "components", "abline")
+Line         <- gvisLineChart(as.data.frame(df), xvar="components", yvar=c("eigenvalues","abline"), options=list(title='Scree plot', legend="right", width=900, height=600, hAxis="{title:'Number of Components', titleTextStyle:{color:'black'}}", vAxes="[{title:'Eigenvalues'}]",  series="[{color:'green',pointSize:3, targetAxisIndex: 0}]"))
+print(Line, 'chart')
+```
+<br>
+
+```{r echo=FALSE, eval=TRUE, tidy=TRUE}
+# Choose one of these options:
+factors_selected = sum(Variance_Explained_Table_copy[,1] >= 1)
+# minimum_variance_explained = 0.5; factors_selected = 1:head(which(Variance_Explained_Table_copy[,"cumulative percentage of variance"]>= minimum_variance_explained),1)
+#factors_selected = 10
+```
+<br>
+
+
+```{r echo=FALSE, eval=TRUE, tidy=TRUE, warning=FALSE, error=FALSE,message=FALSE}
+rotation_used="varimax"
+```
+
+```{r echo=FALSE, eval=TRUE, tidy=TRUE, warning=FALSE, error=FALSE,message=FALSE}
+Rotated_Results<-principal(ProjectDataFactor, nfactors=max(factors_selected), rotate=rotation_used,score=TRUE)
+Rotated_Factors<-round(Rotated_Results$loadings,2)
+Rotated_Factors<-as.data.frame(unclass(Rotated_Factors))
+colnames(Rotated_Factors)<-paste("Component",1:ncol(Rotated_Factors),sep=" ")
+sorted_rows <- sort(Rotated_Factors[,1], decreasing = TRUE, index.return = TRUE)$ix
+Rotated_Factors <- Rotated_Factors[sorted_rows,]
+```
+
+
+Let's see how the top factors look like:
+<br>
+
+```{r echo=FALSE, eval=TRUE, tidy=TRUE}
+MIN_VALUE = 0.5
+Rotated_Factors_thres <- Rotated_Factors
+Rotated_Factors_thres[abs(Rotated_Factors_thres) < MIN_VALUE]<-NA
+colnames(Rotated_Factors_thres)<- colnames(Rotated_Factors)
+rownames(Rotated_Factors_thres)<- rownames(Rotated_Factors)
+```
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+show_data <- Rotated_Factors_thres 
+#show_data = show_data[1:min(max_data_report,nrow(show_data)),]
+show_data$Variables <- rownames(show_data)
+m1<-gvisTable(show_data,options=list(showRowNumber=TRUE,width=1220, height=min(400,27*(nrow(show_data)+1)),allowHTML=TRUE,page='disable'))
+print(m1,'chart')
+```
+<br> <br>
+
+Based on the PCA, we can potentially reduce the number of attributes from 17 to 8, and make the decision making process relatively easier. The 8 new buckets could be defined as: 
+<br>
+<br>
+"User Engagement"" (Sessions, Number of Pages Visited, Revenue, Users, Number of Sessions) 
+<br>
+"Kind of User" (New, Returning)
+<br>
+"Device" (Mobile, Desktop, Tablet)
+<br>
+"Organic Source" (Direct, Referrals)
+<br>
+"DFA Promotions" (DFA)
+<br>
+"Google Promotions" (Google CPC)
+<br>
+"Email" (Email, Newsletter)
+<br>
+
 

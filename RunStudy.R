@@ -1,33 +1,35 @@
 # Write something about the project
 
 rm(list = ls())
+local_directory <- getwd()
+datafile_name="Iberostar"
+report_file = "report"
+slides_file = "Slides"
+factor_attributes_used= c(1:16)
+factor_selectionciterion = "eigenvalue"
+minimum_variance_explained = 65
+rotation_used="varimax"
+MIN_VALUE=0.5
+max_data_report = 50 # can also chance in server.R
+start_local_webapp <- 1
+
 
 ##################################################################
 
-getwd()
+
 
 # Let's get the data
-ProjectData = read.csv("data/Boats.csv", sep=";", dec = ",", header = TRUE)
+ProjectData <- read.csv(paste(paste(local_directory, "data", sep="/"), paste(datafile_name,"csv", sep="."), sep = "/"), sep=";", dec=",") # this contains only the matrix ProjectData
+ProjectData=data.matrix(ProjectData) 
 
-##################################################################
-#This is the file where I have the main report for the project
-docfile = "doc/report.rmd"
+if (datafile_name == "Iberostar")
+  colnames(ProjectData)<-gsub("\\."," ",colnames(ProjectData))
 
-##################################################################
-## These are the main 'parameters of the project"
+factor_attributes_used = unique(sapply(factor_attributes_used,function(i) min(ncol(ProjectData), max(i,1))))
+ProjectDataFactor=ProjectData[,factor_attributes_used]
+source(paste(local_directory,"R/library.R", sep="/"))
 
-
-##################################################################
-## This is where I ask RunStudy.R to "compile" my project document
-source("R/library.R")
-
-newfunction = function (x,y){
-  z = x + y
-  z*z
-}
-
-## Generate the Report
-rmarkdown::render(docfile, quiet = TRUE)
+rmarkdown::render(report_file, quiet = TRUE )
 
 
 
