@@ -35,6 +35,7 @@ library(ggplot2)
 local_directory <- getwd()
 if (!exists("gadata")) 
   gadata <- within(read.csv(paste(local_directory,"../data/Iberostar.csv", sep="/")),rm("X"))
+  gadata2 <- within(read.csv(paste(local_directory,"../data/Iberostar2.csv", sep="/")),rm("X"))
 t1 <- gvisTable(gadata[1:1000,],options = list(showRowNumber = FALSE, width = 800, height = min(400,27*(nrow(gadata) + 1)), allowHTML = TRUE, page = 'disable'))
 print(t1,'chart')
 ```
@@ -44,18 +45,14 @@ print(t1,'chart')
 Let's review the contents of the data 
 <br>
 
-* **year**: the year the data was collected
-* **month**: the month of the year the data was collected
-* **pagePath**: the URL of the page which the data belongs to, excluding the domain. 
-* **source**: the website where the visitor was before landing into our website. If there was no website or it is not recognized, the value is (direct)
-* **medium**: the mechanism by which the visitor landed in our website. Some values are: organic (search engine), cpc (paid advertising in search engines or other websites), referral (from other website), feed (from automated reading systems). If it is not recognized, the value is (none)
-* **userType**: whether the user had been before in the website or not (New Visitor/Returning Visitor)
-* **deviceCategory**: the device of the user
-* **entrances**: how many times a user entered the website through that page
-* **pageviews**: how many times a user opened that page
-* **exits**: how many times that page was the last one opened by a user in the same session
-* **timeOnPage**: how many seconds this page has been viewed
-* **uniquePageviews**: how many times this page has been viewed in an unique session
+* **Type of User**: Returning or New Visitor
+* **Source**: Organic vs Paid Promotions
+* **Users**: Number of User Visits 
+* **Sessions**: Number of User Sessions
+* **No of Pages Visited**: Number of total pages visited
+* **No of Transactions**: Number of monetary transactions
+* **Revenue**: Revenue generated
+* **Dummy Variable**: We created dummy variables categorical data such as 'user type', 'source' and 'device type'
 
 ```{r echo=FALSE, message=FALSE, prompt=FALSE, results='asis'}
 source("../R/library.R")
@@ -77,7 +74,6 @@ print(m1,'chart')
 
 <br>
 Here we use `PCA` to identify primary components:
-<br>
 
 ```{r echo=FALSE, eval=TRUE, tidy=TRUE}
 Variance_Explained_Table_results<-PCA(ProjectDataFactor, graph=FALSE)
@@ -156,19 +152,131 @@ print(m1,'chart')
 Based on the PCA, we can potentially reduce the number of attributes from 17 to 8, and make the decision making process relatively easier. The 8 new buckets could be defined as: 
 <br>
 <br>
-"User Engagement"" (Sessions, Number of Pages Visited, Revenue, Users, Number of Sessions) 
+**User Engagement** (Sessions, Number of Pages Visited, Revenue, Users, Number of Sessions) 
 <br>
-"Kind of User" (New, Returning)
+**Kind of User** (New, Returning)
 <br>
-"Device" (Mobile, Desktop, Tablet)
+**Device** (Mobile, Desktop, Tablet)
 <br>
-"Organic Source" (Direct, Referrals)
+**Organic Source** (Direct, Referrals)
 <br>
-"DFA Promotions" (DFA)
+**DFA Promotions** (DFA CPM)
 <br>
-"Google Promotions" (Google CPC)
+**Google Promotions** (Google CPC)
 <br>
-"Email" (Email, Newsletter)
+**Email** (Email, Newsletter)
 <br>
 
+However, from a business sense, bucketing these attribute does not make much sense hence we do not recommend dimension reduction in this case.
+
+<br>
+<br>
+
+**Now, let's look at how Revenue/Transaction and Transactions vary with device type (Desktop, Mobile and Tablet):**
+
+```{r, echo=FALSE, message=FALSE, prompt=FALSE, results='asis'}
+mobileRevenuePerTransactionDataFrame <- gadata2[gadata2$Mobile == 1,]
+mobileRevenuePerTransactionDataFrame$mRevPerTrans <- mobileRevenuePerTransactionDataFrame$Revenue/mobileRevenuePerTransactionDataFrame$Transactions
+mRevPerTrans <- mean(mobileRevenuePerTransactionDataFrame$mRevPerTrans)
+mTransactions <- sum(mobileRevenuePerTransactionDataFrame$Transactions)
+
+tabletRevenuePerTransactionDataFrame <- gadata2[gadata2$Tablet == 1,]
+tabletRevenuePerTransactionDataFrame$tRevPerTrans <- tabletRevenuePerTransactionDataFrame$Revenue/tabletRevenuePerTransactionDataFrame$Transactions
+tRevPerTrans <- mean(tabletRevenuePerTransactionDataFrame$tRevPerTrans)
+tTransactions <- sum(tabletRevenuePerTransactionDataFrame$Transactions)
+
+desktopRevenuePerTransactionDataFrame <- gadata2[gadata2$Desktop == 1,]
+desktopRevenuePerTransactionDataFrame$dRevPerTrans <- desktopRevenuePerTransactionDataFrame$Revenue/desktopRevenuePerTransactionDataFrame$Transactions
+dRevPerTrans <- mean(desktopRevenuePerTransactionDataFrame$dRevPerTrans)
+dTransactions <- sum(desktopRevenuePerTransactionDataFrame$Transactions)
+
+
+revPerTrans <- c(mRevPerTrans, tRevPerTrans, dRevPerTrans)
+transactions <- c(mTransactions, tTransactions, dTransactions)
+
+rev_range <- range(0, revPerTrans)
+t_range <- range (0,transactions)
+
+
+# Graph autos using y axis that ranges from 0 to max 
+# value in cars or trucks vector.  Turn off axes and 
+# annotations (axis labels) so we can specify them ourself
+plot(revPerTrans, type="o", col="blue", ylim=rev_range, axes=FALSE, ann=FALSE)
+# Make x axis using Mon-Fri labels
+axis(1, at=1:3, lab=c("Mobile","Tablet","Desktop"))
+# Make y axis with horizontal labels that display ticks at 
+# every 4 marks. 4*0:g_range[2] is equivalent to c(0,4,8,12).
+axis(2, las=1, at=500*0:rev_range[2])
+# Create box around plot
+box()
+# Create a title with a red, bold/italic font
+title(main="Revenue Per Transaction for Device Type", col.main="red", font.main=4)
+# Label the x and y axes with dark green text
+title(xlab="Device Type", col.lab=rgb(0,0.5,0))
+title(ylab="Revenue/Transaction", col.lab=rgb(0,0.5,0))
+
+
+
+
+# Graph autos using y axis that ranges from 0 to max 
+# value in cars or trucks vector.  Turn off axes and 
+# annotations (axis labels) so we can specify them ourself
+plot(transactions, type="o", col="blue", ylim=t_range, axes=FALSE, ann=FALSE)
+# Make x axis using Mon-Fri labels
+axis(1, at=1:3, lab=c("Mobile","Tablet","Desktop"))
+# Make y axis with horizontal labels that display ticks at 
+# every 4 marks. 4*0:g_range[2] is equivalent to c(0,4,8,12).
+axis(2, las=1, at=800*0:t_range[2])
+# Create box around plot
+box()
+# Create a title with a red, bold/italic font
+title(main="Number of Transactions for Device Type", col.main="red", font.main=4)
+# Label the x and y axes with dark green text
+title(xlab="Device Type", col.lab=rgb(0,0.5,0))
+title(ylab="Transactions", col.lab=rgb(0,0.5,0))
+
+```
+
+
+---
+Now, we try to understand how the usage pattern of users impacts the transactions - how many page views does it take for one user on an average to make a transaction on different device types
+---
+
+
+
+```{r, echo=FALSE, message=FALSE, prompt=FALSE, results='asis'}
+mobileTransactionPerPageViewsDataFrame <- gadata2[gadata2$Mobile == 1,]
+mobileTransactionPerPageViewsDataFrame$mTransPerViews <- mobileTransactionPerPageViewsDataFrame$PagesVisitedNumber/mobileTransactionPerPageViewsDataFrame$Transactions
+mTransPerViews <- mean(mobileTransactionPerPageViewsDataFrame$mTransPerViews)
+
+tabletTransactionPerPageViewsDataFrame <- gadata2[gadata2$Tablet == 1,]
+tabletTransactionPerPageViewsDataFrame$tTransPerViews <- tabletTransactionPerPageViewsDataFrame$PagesVisitedNumber/tabletTransactionPerPageViewsDataFrame$Transactions
+tTransPerViews <- mean(tabletTransactionPerPageViewsDataFrame$tTransPerViews)
+
+desktopTransactionPerPageViewsDataFrame <- gadata2[gadata2$Desktop == 1,]
+desktopTransactionPerPageViewsDataFrame$dTransPerViews <- desktopTransactionPerPageViewsDataFrame$PagesVisitedNumber/desktopTransactionPerPageViewsDataFrame$Transactions
+dTransPerViews <- mean(desktopTransactionPerPageViewsDataFrame$dTransPerViews)
+
+
+transPerViews <- c(mTransPerViews, tTransPerViews, dTransPerViews)
+trans_range <- range(0, transPerViews)
+
+
+
+# Graph autos using y axis that ranges from 0 to max 
+# value in cars or trucks vector.  Turn off axes and 
+# annotations (axis labels) so we can specify them ourself
+plot(transPerViews, type="o", col="blue", ylim=trans_range, axes=FALSE, ann=FALSE)
+# Make x axis using Mon-Fri labels
+axis(1, at=1:3, lab=c("Mobile","Tablet","Desktop"))
+# Make y axis with horizontal labels that display ticks at 
+# every 4 marks. 4*0:g_range[2] is equivalent to c(0,4,8,12).
+axis(2, las=1, at=1500*0:trans_range[2])
+# Create box around plot
+box()
+# Create a title with a red, bold/italic font
+title(main="PageView for Each Transaction for Different Devices", col.main="red", font.main=4)
+# Label the x and y axes with dark green text
+title(xlab="Device Type", col.lab=rgb(0,0.5,0))
+title(ylab="PageViews/Transaction", col.lab=rgb(0,0.5,0))
 
