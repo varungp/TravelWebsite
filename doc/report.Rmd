@@ -3,9 +3,10 @@ output: html_document
 ---
 
 ***
-***
 
- Travel Website - Iberostar 
+ Travel Website - Iberostar
+ <br>
+ ![alt text](iberostar.jpeg)
 
 ==========================================
 
@@ -172,20 +173,22 @@ However, from a business sense, bucketing these attribute does not make much sen
 <br>
 <br>
 
-**Now, let's look at how Revenue/Transaction and Transactions vary with device type (Desktop, Mobile and Tablet):**
+Now, we look into the revenue and transactions data through device segments, and try to find out simple patterns. let's look at how Revenue/Transaction and Transactions varry for the type of device: Desktop, Mobile and Tablet 
 
 ```{r, echo=FALSE, message=FALSE, prompt=FALSE, results='asis'}
-mobileRevenuePerTransactionDataFrame <- gadata2[gadata2$Mobile == 1,]
+mobileRevenuePerTransactionDataFrame <- gadata2[gadata$Mobile == 1,]
 mobileRevenuePerTransactionDataFrame$mRevPerTrans <- mobileRevenuePerTransactionDataFrame$Revenue/mobileRevenuePerTransactionDataFrame$Transactions
 mRevPerTrans <- mean(mobileRevenuePerTransactionDataFrame$mRevPerTrans)
 mTransactions <- sum(mobileRevenuePerTransactionDataFrame$Transactions)
 
-tabletRevenuePerTransactionDataFrame <- gadata2[gadata2$Tablet == 1,]
+
+tabletRevenuePerTransactionDataFrame <- gadata2[gadata$Tablet == 1,]
 tabletRevenuePerTransactionDataFrame$tRevPerTrans <- tabletRevenuePerTransactionDataFrame$Revenue/tabletRevenuePerTransactionDataFrame$Transactions
 tRevPerTrans <- mean(tabletRevenuePerTransactionDataFrame$tRevPerTrans)
 tTransactions <- sum(tabletRevenuePerTransactionDataFrame$Transactions)
 
-desktopRevenuePerTransactionDataFrame <- gadata2[gadata2$Desktop == 1,]
+
+desktopRevenuePerTransactionDataFrame <- gadata2[gadata$Desktop == 1,]
 desktopRevenuePerTransactionDataFrame$dRevPerTrans <- desktopRevenuePerTransactionDataFrame$Revenue/desktopRevenuePerTransactionDataFrame$Transactions
 dRevPerTrans <- mean(desktopRevenuePerTransactionDataFrame$dRevPerTrans)
 dTransactions <- sum(desktopRevenuePerTransactionDataFrame$Transactions)
@@ -226,7 +229,7 @@ plot(transactions, type="o", col="blue", ylim=t_range, axes=FALSE, ann=FALSE)
 axis(1, at=1:3, lab=c("Mobile","Tablet","Desktop"))
 # Make y axis with horizontal labels that display ticks at 
 # every 4 marks. 4*0:g_range[2] is equivalent to c(0,4,8,12).
-axis(2, las=1, at=800*0:t_range[2])
+axis(2, las=1, at=400*0:t_range[2])
 # Create box around plot
 box()
 # Create a title with a red, bold/italic font
@@ -239,21 +242,21 @@ title(ylab="Transactions", col.lab=rgb(0,0.5,0))
 
 
 ---
-Now, we try to understand how the usage pattern of users impacts the transactions - how many page views does it take for one user on an average to make a transaction on different device types
+**Now, we try to understand how the usage pattern of users impacts the transactions - how many page views does it take for one user on an average to make a transaction on different device types**
 ---
 
 
 
 ```{r, echo=FALSE, message=FALSE, prompt=FALSE, results='asis'}
-mobileTransactionPerPageViewsDataFrame <- gadata2[gadata2$Mobile == 1,]
+mobileTransactionPerPageViewsDataFrame <- gadata2[gadata$Mobile == 1,]
 mobileTransactionPerPageViewsDataFrame$mTransPerViews <- mobileTransactionPerPageViewsDataFrame$PagesVisitedNumber/mobileTransactionPerPageViewsDataFrame$Transactions
 mTransPerViews <- mean(mobileTransactionPerPageViewsDataFrame$mTransPerViews)
 
-tabletTransactionPerPageViewsDataFrame <- gadata2[gadata2$Tablet == 1,]
+tabletTransactionPerPageViewsDataFrame <- gadata2[gadata$Tablet == 1,]
 tabletTransactionPerPageViewsDataFrame$tTransPerViews <- tabletTransactionPerPageViewsDataFrame$PagesVisitedNumber/tabletTransactionPerPageViewsDataFrame$Transactions
 tTransPerViews <- mean(tabletTransactionPerPageViewsDataFrame$tTransPerViews)
 
-desktopTransactionPerPageViewsDataFrame <- gadata2[gadata2$Desktop == 1,]
+desktopTransactionPerPageViewsDataFrame <- gadata2[gadata$Desktop == 1,]
 desktopTransactionPerPageViewsDataFrame$dTransPerViews <- desktopTransactionPerPageViewsDataFrame$PagesVisitedNumber/desktopTransactionPerPageViewsDataFrame$Transactions
 dTransPerViews <- mean(desktopTransactionPerPageViewsDataFrame$dTransPerViews)
 
@@ -280,3 +283,13 @@ title(main="PageView for Each Transaction for Different Devices", col.main="red"
 title(xlab="Device Type", col.lab=rgb(0,0.5,0))
 title(ylab="PageViews/Transaction", col.lab=rgb(0,0.5,0))
 
+
+```
+
+
+---
+
+It is clear that out of all the device types , tablet is one of the most profitable for the client. Not only the average revenue per ransaction is highest for the tablet, but among mobile and tablet tablet outperforms mobile by garnering similar transaction numbers for less than 20% of the page views. We recommends that the client further studies the source segmentation of tablet users and spends more marketing budget on acquiring tablet users. On the other hand form product perspective the client should look into the reasons behind very high number of mobile page views with marginal returns - perhaps there is a lot of scope for improvement by making the mobile experience simpler and easy to use.
+
+--- 
+***
