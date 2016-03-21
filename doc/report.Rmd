@@ -4,9 +4,8 @@ output: html_document
 
 ***
 
- Travel Website - Iberostar
+ Travel Website - ABC Company
  <br>
- ![alt text](iberostar.jpeg)
 
 ==========================================
 
@@ -17,7 +16,7 @@ varun.gupta@insead.edu
  
 ## Business motivation
  
-Our client Iberostar Hotels & Resorts is a hotel chain based in Spain, specializing in 4 and 5 star hotels. It is owned by Grupo Iberostar, which also owns Iberostate Golf, Villas & Condos, Iberoservice its incoming tourism division and Iberostar The Club.
+Our client ABC Hotels & Resorts is a hotel chain based in Spain, specializing in 4 and 5 star hotels. It is owned by Grupo ABC, which also owns Iberostate Golf, Villas & Condos, Iberoservice its incoming tourism division and ABC The Club.
 
 The client has its own website and receives traffic from several countries. In this case, we have looked into the traffic data of the client and have tried to look for bottled down factors that drive the booking and hence the revenue for the client. Further, we have looked at the possible clusters in the traffic data.
 
